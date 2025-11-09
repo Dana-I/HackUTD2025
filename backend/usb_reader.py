@@ -48,7 +48,7 @@ def main():
                     # Send to FastAPI backend
                     try:
                         response = requests.post(
-                            f"{API_BASE}/sensor_data",
+                            f"{API_BASE}/sensor_log",
                             json=sensor_data,
                             timeout=2
                         )
