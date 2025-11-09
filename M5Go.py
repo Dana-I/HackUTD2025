@@ -35,7 +35,7 @@ while True:
   if (tempF > 72):
     label7.setText("Temp too high!")
     label7.setColor(0x8B0000)
-  else
+  else:
     label17.setText("Temp OK")
     label7.setColor(0xffffff)
     
