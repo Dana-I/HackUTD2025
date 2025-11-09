@@ -89,7 +89,7 @@ while True:
         soundData.setText(str(decibel))
 
         # warning if temperature exceeds acceptable limit
-        if tempF > 80:
+        if tempF > 85:
             statusUpdate.setText("Temp too high!")
             rgb.setColorAll(0xff0000)
             statusUpdate.setColor(0x8B0000)
@@ -137,8 +137,8 @@ while True:
           humidityData.setText("")
           soundData.setText("")
           setScreenColor(0xFFFF00)
-          #lcd.fillRect(0, 30, 320, 220, color=0xFFFF00)
           jsonLabel.setText(description)
+          navLabel = M5TextBox(30, 220, " Back       Next", lcd.FONT_DejaVu18, 0x000000, rotate=0)
 
     elif show_task:
         tempC = env3_0.temperature
@@ -150,6 +150,7 @@ while True:
         else:
             rgb.setColorAll(0x00FF00)
             title0.setBgColor(0x00FF00)
+        time.sleep_ms(100)
           
         if step_index < len(steps):
             if btnB.isPressed() and step_index<len(steps):
@@ -160,6 +161,7 @@ while True:
                   lcd.print(line, 10, y, 0x000000)
                   y += 20
                 step_index += 1
+                navLabel = M5TextBox(30, 220, " Back       Next", lcd.FONT_DejaVu18, 0x000000, rotate=0)
                 
             if btnA.isPressed() and step_index>0:
                 lcd.clear()
@@ -169,6 +171,7 @@ while True:
                   lcd.print(line, 10, y, 0x000000)
                   y += 20
                 step_index -= 1
+                navLabel = M5TextBox(30, 220, "    Back           Next", lcd.FONT_DejaVu18, 0x000000, rotate=0)
               
         else:
             setScreenColor(0x000000)
