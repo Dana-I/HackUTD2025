@@ -121,3 +121,7 @@ def get_logs():
 @app.get("/sensor_logs")
 def get_sensor_logs():
     return {"data": sensor_data_log[-50:]}  # last 50 readings for graph
+
+@app.get("/ping")
+def ping():
+    return {"status": "ok"}
