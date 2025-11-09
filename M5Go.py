@@ -51,6 +51,10 @@ step_index = 0
 show_stats = True
 show_task = False
 
+noise_threshold = 85
+noise_start_time = None
+noise_warning_active = False
+
 # Helper Function for Sound
 def read_sound_level():
     total = 0
@@ -76,6 +80,7 @@ def wrap_text(text, max_chars=25):
 # Infinite loop for live data
 while True:
     if show_stats:
+        current_time = time.ticks_ms()
         tempC = env3_0.temperature
         tempF = tempC * 9 / 5 + 32
         pressure = env3_0.pressure
@@ -87,18 +92,34 @@ while True:
         humidityData.setText(str(humidity))
         decibel = read_sound_level()
         soundData.setText(str(decibel))
+        
+        if decibel > noise_threshold:
+          if noise_start_time is None:
+            noise_start_time = current_time
+          elif time.ticks_diff(current_time, noise_start_time) > 5000:  # >5 seconds
+            noise_warning_active = True
+          else:
+            noise_start_time = None
+            noise_warning_active = False
 
         # warning if temperature exceeds acceptable limit
-        if tempF > 85:
-            statusUpdate.setText("Temp too high!")
-            rgb.setColorAll(0xff0000)
-            statusUpdate.setColor(0x8B0000)
-            title0.setBgColor(0xff0000)
+        if tempF > 90 and noise_warning_active:
+          statusUpdate.setText("TOO LOUD&HOT")
+          rgb.setColorAll(0xff0000)
+          statusUpdate.setColor(0x8B0000)
+          title0.setBgColor(0xff0000)
+        elif decibel > noise_threshold:  # immediate short warning
+          statusUpdate.setText("Noise rising...")
+          statusUpdate.setColor(0xFFFF00)
+          rgb.setColorAll(0xFFFF00)
+          title0.setBgColor(0xFFFF00)
         else:
-            statusUpdate.setText("Normal stats")
-            statusUpdate.setColor(0xffffff)
-            rgb.setColorAll(0x00FF00)
-            title0.setBgColor(0x00FF00)
+          statusUpdate.setText("Normal stats")
+          statusUpdate.setColor(0xffffff)
+          rgb.setColorAll(0x00FF00)
+          title0.setBgColor(0x00FF00)
+            
+      
             
         # send & get data from streamlit
         # try:
@@ -138,13 +159,18 @@ while True:
           soundData.setText("")
           setScreenColor(0xFFFF00)
           jsonLabel.setText(description)
+          # wrapped = wrap_text(description)
+          # y = 30
+          # for line in wrapped:
+          #   lcd.print(line, 10, y, 0x000000)
+          #   y += 20
           navLabel = M5TextBox(30, 220, " Back       Next", lcd.FONT_DejaVu18, 0x000000, rotate=0)
 
     elif show_task:
         tempC = env3_0.temperature
         tempF = tempC * 9 / 5 + 32
         
-        if tempF > 85:
+        if tempF > 90:
             rgb.setColorAll(0xff0000)
             title0.setBgColor(0xff0000)
         else:
