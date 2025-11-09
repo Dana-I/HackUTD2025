@@ -88,6 +88,7 @@ import streamlit as st
 import requests
 import pandas as pd
 import time
+from PIL import Image
 
 API_BASE = "http://localhost:8000"
 
@@ -157,6 +158,10 @@ while True:
         logs = log_resp.get("logs", [])
         log_text = "\n".join([f"{l['time']} — {l['event']}" for l in logs[-15:]])
         log_box.text(log_text)
+
+        
+        header_image = Image.open("assets/RavenHeader.png")
+        st.image(header_image, use_container_width=True)
 
         time.sleep(3)
 
