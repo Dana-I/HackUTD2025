@@ -70,6 +70,9 @@ if st.button("Download Full Log File"):
 
 df = pd.DataFrame(columns=["time", "temperature", "sound"])
 
+footer_image = Image.open("assets/RavenHeader.png")
+st.image(footer_image, width="stretch")
+
 while True:
     try:
         # Fetch sensor data from backend
@@ -85,10 +88,6 @@ while True:
         logs = log_resp.get("logs", [])
         full_log_text = "\n".join([f"{l['timestamp']} — {l['event']}" for l in logs])
         log_box.text(full_log_text)
-
-        
-        header_image = Image.open("assets/RavenHeader.png")
-        st.image(header_image, use_container_width=True)
 
         time.sleep(3)
 
