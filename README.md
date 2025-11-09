@@ -34,3 +34,9 @@ To run programs:
 1. Start FastAPI (uvicorn app:app --reload)
 2. Start USB reader (python3 usb_reader.py)
 3. Start Streamlit dashboard (streamlit run app.py)
+
+To run file on M5Go through UIFlow interface
+1. Go to https://flow.m5stack.com/
+2. Connect M5Go to wifi network
+3. Add API key of device to m5stack settings
+4. Run file
