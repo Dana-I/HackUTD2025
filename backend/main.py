@@ -6,16 +6,13 @@ import os, json
 from dotenv import load_dotenv
 from datetime import datetime
 
-# Load .env file
 load_dotenv()
 
 # Initialize client (reads GEMINI_API_KEY from environment)
 client = genai.Client()
 
-# Create FastAPI app
 app = FastAPI()
 
-# Allow frontend (Streamlit / Pi)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -42,24 +39,21 @@ async def generate_steps(request: Request):
     try:
         # New SDK uses client.models.generate_content()
         response = client.models.generate_content(
-            model="gemini-2.0-flash",  # change to gemini-2.5-flash if listed for your key
+            model="gemini-2.0-flash", 
             contents=[prompt],
         )
 
         text = response.text.strip()
 
-        # Remove Markdown code fences if Gemini adds them
+        # Parse through JSON response
         if text.startswith("```"):
-            text = text.strip("`")  # remove backticks
+            text = text.strip("`")  
             text = text.replace("json", "").replace("JSON", "").strip()
 
-        # Try to extract the JSON array cleanly
         try:
             steps = json.loads(text)
         except Exception:
-            # If still not valid JSON, fall back to splitting lines
             lines = [line.strip(" ,") for line in text.split("\n") if line.strip()]
-            # Remove stray brackets or quotes
             steps = [
                 l.strip('"').strip(",").strip()
                 for l in lines
@@ -88,13 +82,25 @@ async def sensor_data(request: Request):
         "sound": sound
     })
 
-    # Check Fahrenheit thresholds
+    # Check Fahrenheit and sound thresholds
     alerts = []
-    if temperature_f and temperature_f > 90:
+    if temperature_f and temperature_f > 85:
         alerts.append(f"High Temperature Alert: {temperature_f}°F at {timestamp}")
-    if sound and sound > 75:
+    if sound and sound > 85:
         alerts.append(f"High Sound Alert: {sound}dB at {timestamp}")
 
+    # Sustained noise warning (>= 75 dB for ~5 readings in a row)
+    recent_sound_readings = [
+        entry["sound"] for entry in sensor_data_log[-5:]
+        if entry.get("sound") is not None
+    ]
+
+    if len(recent_sound_readings) == 5 and all(value >= 75 for value in recent_sound_readings):
+        technician_log.append({
+            "time": timestamp,
+            "event": "Sustained High Noise (≥ 75 dB for ~10–15s)"
+        })
+        
     for alert in alerts:
         technician_log.append({
             "time": timestamp,
