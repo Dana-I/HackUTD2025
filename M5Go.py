@@ -108,6 +108,11 @@ while True:
           rgb.setColorAll(0xff0000)
           statusUpdate.setColor(0x8B0000)
           title0.setBgColor(0xff0000)
+        elif tempF > 90:
+          statusUpdate.setText("TOO HOT")
+          rgb.setColorAll(0xff0000)
+          statusUpdate.setColor(0x8B0000)
+          title0.setBgColor(0xff0000)
         elif decibel > noise_threshold:  # immediate short warning
           statusUpdate.setText("Noise rising...")
           statusUpdate.setColor(0xFFFF00)
