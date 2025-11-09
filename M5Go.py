@@ -3,6 +3,11 @@ from m5ui import *
 from uiflow import *
 import time
 import unit
+import json, wifiCfg, urequests
+
+wifiCfg.doConnect("iPhone", "Jazz5465")
+
+API_BASE = "http://10.169.166.159:8000"
 
 setScreenColor(0x000000)
 env3_0 = unit.get(unit.ENV3, unit.PORTA)
@@ -19,7 +24,7 @@ soundLabel = M5TextBox(30, 190, "Sound (db) :", lcd.FONT_Default, 0xFFFFFF, rota
 tempData = M5TextBox(210, 100, "Text", lcd.FONT_Default, 0xffffff, rotate=0)
 pressureData = M5TextBox(210, 130, "Text", lcd.FONT_Default, 0xFFFFFF, rotate=0)
 humidityData = M5TextBox(210, 160, "Text", lcd.FONT_Default, 0xFFFFFF, rotate=0)
-
+soundData = M5TextBox(210, 190, "Text", lcd.FONT_Default, 0xFFFFFF, rotate=0)
 
 show_stats = True
 show_task = False
@@ -80,3 +85,13 @@ while show_task:
   lcd.print(steps[step_index], 10, 170, 0xFFFFFF)
   if btnB.isPressed():
     step_index += 1
+  
+  
+ 
+  
+
+
+
+
+  
+  
