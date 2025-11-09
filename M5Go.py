@@ -6,10 +6,6 @@ import unit
 import math
 import json, wifiCfg, urequests
 
-wifiCfg.doConnect("iPhone", "Jazz5465")
-
-API_BASE = "http://10.169.166.159:8000"
-
 setScreenColor(0x000000)
 env3_0 = unit.get(unit.ENV3, unit.PORTA)
 
@@ -35,8 +31,22 @@ humidityData = M5TextBox(210, 160, "Text", lcd.FONT_Default, 0xFFFFFF, rotate=0)
 soundData = M5TextBox(210, 190, "Text", lcd.FONT_Default, 0xFFFFFF, rotate=0)
 
 # variables
-json_input = ""
-steps = []
+json_input = {
+    "description": "Replace faulty cooling fan in Rack C3",
+    "steps": [
+        "1. Safety First: Power down the affected rack (C3) and confirm power isolation. Verify using a multimeter.",
+        "2. PPE Check: Put on appropriate Personal Protective Equipment (PPE), including safety glasses and antistatic wrist strap.",
+        "3. Identify Faulty Fan: Locate and visually inspect the faulty cooling fan within Rack C3. Note its model number and location.",
+        "4. Remove Faulty Fan: Carefully disconnect the power cable and any mounting hardware securing the faulty fan. Remove the fan.",
+        "5. Install Replacement Fan: Install the new cooling fan, ensuring it is the correct model. Secure it with the appropriate mounting hardware and reconnect the power cable.",
+        "6. Verify Operation: Power on Rack C3 and confirm the new fan is operating correctly and airflow is restored. Monitor temperature readings.",
+        "7. Dispose of Faulty Fan: Properly dispose of the faulty fan according to data center e-waste procedures."
+    ]
+}
+description = json_input["description"]
+steps = json_input["steps"]
+jsonLabel = M5TextBox(10, 100, "", lcd.FONT_DejaVu24, 0x000000, rotate=0)
+stepLabel = M5TextBox(30, 100, "", lcd.FONT_Default, 0xFFFFFF, rotate=0)
 step_index = 0
 show_stats = True
 show_task = False
@@ -51,6 +61,17 @@ def read_sound_level():
     # Convert to approximate "dB" scale (not calibrated, just visual)
     db = (avg / 4095) * 100
     return round(db, 1)
+    
+def wrap_text(text, max_chars=25):
+    lines = []
+    while len(text) > max_chars:
+        split_at = text.rfind(" ", 0, max_chars)
+        if split_at == -1:
+            split_at = max_chars
+        lines.append(text[:split_at])
+        text = text[split_at:].lstrip()
+    lines.append(text)
+    return lines
 
 # Infinite loop for live data
 while True:
@@ -80,43 +101,83 @@ while True:
             title0.setBgColor(0x00FF00)
             
         # send & get data from streamlit
-        try:
-            payload = {"temperature": tempF, "sound": sound}
-            response = urequests.post(API_BASE + "/sensor_data", json=payload)
-            if response.status_code == 200:
-                json_input = response.text
-                data = json.loads(json_input)
-                steps = data.get("steps", [])
-                if steps:
-                    show_stats = False
-                    show_task = True
-                    tempLabel.setText("")
-                    pressureLabel.setText("")
-                    humidityLabel.setText("")
-                    soundLabel.setText("")
-                    tempData.setText("")
-                    pressureData.setText("")
-                    humidityData.setText("")
-                    soundData.setText("")
-                    lcd.clear()
-            response.close()
-        except Exception as e:
-            statusUpdate.setText("Net Err")
-            statusUpdate.setColor(0xFFFF00)
+        # try:
+        #     payload = {"temperature": tempF, "sound": sound}
+        #     response = urequests.post(API_BASE + "/sensor_data", json=payload)
+        #     if response.status_code == 200:
+        #         json_input = response.text
+        #         data = json.loads(json_input)
+        #         steps = data.get("steps", [])
+        #         if steps:
+        #             show_stats = False
+        #             show_task = True
+        #             tempLabel.setText("")
+        #             pressureLabel.setText("")
+        #             humidityLabel.setText("")
+        #             soundLabel.setText("")
+        #             tempData.setText("")
+        #             pressureData.setText("")
+        #             humidityData.setText("")
+        #             soundData.setText("")
+        #             lcd.clear()
+        #     response.close()
+        # except Exception as e:
+        #     statusUpdate.setText("")
+        #     statusUpdate.setColor(0xFFFF00)
+        
+        if (btnC.wasPressed()): # get task
+          show_stats = False
+          show_task = True
+          tempLabel.setText("")
+          pressureLabel.setText("")
+          humidityLabel.setText("")
+          soundLabel.setText("")
+          tempData.setText("")
+          pressureData.setText("")
+          humidityData.setText("")
+          soundData.setText("")
+          setScreenColor(0xFFFF00)
+          #lcd.fillRect(0, 30, 320, 220, color=0xFFFF00)
+          jsonLabel.setText(description)
 
     elif show_task:
-        if step_index < len(steps):
-            lcd.print(steps[step_index], 10, 170, 0xFFFFFF)
-            if btnB.isPressed():
-                step_index += 1
-                lcd.clear()
+        tempC = env3_0.temperature
+        tempF = tempC * 9 / 5 + 32
+        
+        if tempF > 85:
+            rgb.setColorAll(0xff0000)
+            title0.setBgColor(0xff0000)
         else:
+            rgb.setColorAll(0x00FF00)
+            title0.setBgColor(0x00FF00)
+          
+        if step_index < len(steps):
+            if btnB.isPressed() and step_index<len(steps):
+                lcd.clear()
+                wrapped = wrap_text(steps[step_index])
+                y = 30
+                for line in wrapped:
+                  lcd.print(line, 10, y, 0x000000)
+                  y += 20
+                step_index += 1
+                
+            if btnA.isPressed() and step_index>0:
+                lcd.clear()
+                wrapped = wrap_text(steps[step_index])
+                y = 30
+                for line in wrapped:
+                  lcd.print(line, 10, y, 0x000000)
+                  y += 20
+                step_index -= 1
+              
+        else:
+            setScreenColor(0x000000)
+            statusLabel = M5TextBox(10, 50, "Status : ", lcd.FONT_DejaVu24, 0xffffff, rotate=0)
+            tempLabel.setText("Temperature (F) :")
+            pressureLabel.setText("Pressure (hPa) :")
+            humidityLabel.setText("Humidity (%) :")
+            soundLabel.setText("Sound (db) :")
             show_task = False
             show_stats = True
             step_index = 0
-            lcd.clear()
-
-
-
-
-
+            
