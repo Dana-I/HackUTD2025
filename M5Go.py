@@ -7,12 +7,6 @@ import unit
 setScreenColor(0x000000)
 env3_0 = unit.get(unit.ENV3, unit.PORTA)
 
-
-random2 = None
-i = None
-
-
-
 title0 = M5Title(title="UNIT ENV III", x=120, fgcolor=0xFFFFFF, bgcolor=0xff0000)
 statusLabel = M5TextBox(10, 50, "Status : ", lcd.FONT_DejaVu24, 0xffffff, rotate=0)
 statusUpdate = M5TextBox(120, 50, " ", lcd.FONT_DejaVu24, 0x8B0000, rotate=0)
@@ -67,21 +61,22 @@ while show_stats:
     rgb.setColorAll(0x00FF00)
     title0.setBgColor(0x00FF00)
     
+  if (json_input != ""):
+    tempLabel.setText("")
+    pressureLabel.setText("")
+    humidityLabel.setText("")
+    soundLabel.setText("")
+    tempData.setText("")
+    pressureData.setText("")
+    humidityData.setText("")
+    soundData.setText("")
+    show_stats = False
+    show_task = True
+    
   wait(0.1)
   wait_ms(2)
     
 while show_task:
-  tempLabel.setText("")
-  pressureLabel.setText("")
-  humidityLabel.setText("")
-  soundLabel.setText("")
-  
-  
- 
-  
-
-
-
-
-  
-  
+  lcd.print(steps[step_index], 10, 170, 0xFFFFFF)
+  if btnB.isPressed():
+    step_index += 1
