@@ -5,12 +5,8 @@ import requests
 import time
 from datetime import datetime
 
-# Backend URL (now using localhost since everything runs on same machine)
 API_BASE = "http://localhost:8000"
 
-# Find your M5Go's serial port
-# On Mac: /dev/cu.usbserial-* or /dev/ttyUSB*
-# On Windows: COM3, COM4, etc.
 SERIAL_PORT = "/dev/cu.usbserial-58FE0073171"  #  actual port
 
 def find_m5go_port():

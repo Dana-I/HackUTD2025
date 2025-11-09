@@ -8,7 +8,7 @@ from datetime import datetime
 
 load_dotenv()
 
-# Initialize client (reads GEMINI_API_KEY from environment)
+# reads GEMINI_API_KEY from env
 client = genai.Client()
 
 app = FastAPI()
@@ -37,7 +37,6 @@ async def generate_steps(request: Request):
     )
 
     try:
-        # New SDK uses client.models.generate_content()
         response = client.models.generate_content(
             model="gemini-2.0-flash", 
             contents=[prompt],
@@ -68,6 +67,16 @@ async def generate_steps(request: Request):
 sensor_data_log = []
 technician_log = []
 
+LOG_FILE = "technician_log.txt"
+
+def save_log(event: dict):
+    technician_log.append(event)
+
+    # Append to file so it persists
+    with open(LOG_FILE, "a") as f:
+        f.write(f"{event['timestamp']} — {event['event']}\n")
+
+
 @app.post("/sensor_data")
 async def sensor_data(request: Request):
     data = await request.json()
@@ -84,7 +93,7 @@ async def sensor_data(request: Request):
 
     # Check Fahrenheit and sound thresholds
     alerts = []
-    if temperature_f and temperature_f > 85:
+    if temperature_f and temperature_f > 90:
         alerts.append(f"High Temperature Alert: {temperature_f}°F at {timestamp}")
     if sound and sound > 85:
         alerts.append(f"High Sound Alert: {sound}dB at {timestamp}")
@@ -96,14 +105,14 @@ async def sensor_data(request: Request):
     ]
 
     if len(recent_sound_readings) == 5 and all(value >= 75 for value in recent_sound_readings):
-        technician_log.append({
-            "time": timestamp,
+        save_log({
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "event": "Sustained High Noise (≥ 75 dB for ~10–15s)"
         })
         
     for alert in alerts:
-        technician_log.append({
-            "time": timestamp,
+        save_log({
+            "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
             "event": alert
         })
 
@@ -115,7 +124,10 @@ async def update_status(request: Request):
     step = data.get("step")
     action = data.get("action")
     timestamp = datetime.now().strftime("%H:%M:%S")
-    technician_log.append({"time": timestamp, "event": f"Step '{step}' marked as {action}"})
+    save_log({
+        "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "event": f"Step '{step}' marked as {action}"
+    })
     return {"status": "logged"}
 
 
@@ -123,6 +135,13 @@ async def update_status(request: Request):
 def get_logs():
     return {"logs": technician_log}
 
+@app.get("/log_file")
+def get_log_file():
+    try:
+        with open(LOG_FILE, "r") as f:
+            return f.read()
+    except FileNotFoundError:
+        return ""
 
 @app.get("/sensor_logs")
 def get_sensor_logs():
