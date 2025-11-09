@@ -3,13 +3,11 @@ import requests
 import pandas as pd
 import time
 
-# --- Backend URL ---
-API_BASE = "http://127.0.0.1:8000"
+API_BASE = "http://localhost:8000"
 
 st.set_page_config(page_title="Data Center Technician Dashboard", layout="wide")
 st.title("Data Center Assistant Dashboard")
 
-# --- Ticket input ---
 st.subheader("Assign a New Ticket")
 ticket_description = st.text_area("Enter ticket/task description:")
 
@@ -27,11 +25,9 @@ if st.button("Generate Actionable Steps (Gemini)"):
         except Exception as e:
             st.error(f"Error contacting backend: {e}")
 
-# --- Display generated steps ---
 if "steps" in st.session_state:
     st.subheader("Actionable Steps")
 
-    # initialize "sent" flags once
     if "step_sent" not in st.session_state:
         st.session_state["step_sent"] = {i: False for i in range(len(st.session_state["steps"]))}
 
@@ -39,7 +35,6 @@ if "steps" in st.session_state:
         key = f"step_{i}"
         checked = st.checkbox(step, key=key)
 
-        # Log ONLY on first transition to checked
         if checked and not st.session_state["step_sent"].get(i, False):
             try:
                 requests.post(f"{API_BASE}/update_status",
@@ -48,7 +43,6 @@ if "steps" in st.session_state:
             except Exception:
                 st.warning("Could not reach backend to log this step.")
 
-# --- Real-time data display ---
 col1, col2 = st.columns(2)
 with col1:
     st.subheader("Temperature Over Time (°F)")
@@ -60,19 +54,18 @@ with col2:
 st.subheader("Technician & Alert Log")
 log_box = st.empty()
 
-# --- Live updates loop ---
-placeholder = st.empty()
+df = pd.DataFrame(columns=["time", "temperature", "sound"])
+
 while True:
     try:
-        # Fetch sensor data from backend
-        sensor_resp = requests.get(f"{API_BASE}/sensor_logs").json()
+        sensor_resp = requests.get(f"{API_BASE}/sensor_data").json()
         sensors = sensor_resp.get("data", [])
+
         if sensors:
             df = pd.DataFrame(sensors)
             temp_chart.line_chart(df, x="time", y="temperature")
             sound_chart.line_chart(df, x="time", y="sound")
 
-        # Fetch logs
         log_resp = requests.get(f"{API_BASE}/logs").json()
         logs = log_resp.get("logs", [])
         log_text = "\n".join([f"{l['time']} — {l['event']}" for l in logs[-15:]])
