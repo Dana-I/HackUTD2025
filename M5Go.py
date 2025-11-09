@@ -4,7 +4,6 @@ from uiflow import *
 import time
 import unit
 
-
 setScreenColor(0x000000)
 env3_0 = unit.get(unit.ENV3, unit.PORTA)
 
@@ -13,34 +12,76 @@ random2 = None
 i = None
 
 
-label0 = M5TextBox(30, 120, "Temperature (F) :", lcd.FONT_Default, 0xFFFFFF, rotate=0)
-label1 = M5TextBox(30, 150, "Pressure (hPa) :", lcd.FONT_Default, 0xFFFFFF, rotate=0)
-label2 = M5TextBox(30, 180, "Humidity (%) :", lcd.FONT_Default, 0xFFFFFF, rotate=0)
-label8 = M5TextBox(30, 210, "Sound (db) :", lcd.FONT_Default, 0xFFFFFF, rotate=0)
-label3 = M5TextBox(210, 120, "Text", lcd.FONT_Default, 0xffffff, rotate=0)
+
 title0 = M5Title(title="UNIT ENV III", x=120, fgcolor=0xFFFFFF, bgcolor=0xff0000)
-label4 = M5TextBox(210, 150, "Text", lcd.FONT_Default, 0xFFFFFF, rotate=0)
-label5 = M5TextBox(210, 180, "Text", lcd.FONT_Default, 0xFFFFFF, rotate=0)
-label6 = M5TextBox(10, 50, "Status : ", lcd.FONT_DejaVu24, 0xffffff, rotate=0)
-label7 = M5TextBox(120, 50, " ", lcd.FONT_DejaVu24, 0x8B0000, rotate=0)
+statusLabel = M5TextBox(10, 50, "Status : ", lcd.FONT_DejaVu24, 0xffffff, rotate=0)
+statusUpdate = M5TextBox(120, 50, " ", lcd.FONT_DejaVu24, 0x8B0000, rotate=0)
+
+tempLabel = M5TextBox(30, 100, "Temperature (F) :", lcd.FONT_Default, 0xFFFFFF, rotate=0)
+pressureLabel = M5TextBox(30, 130, "Pressure (hPa) :", lcd.FONT_Default, 0xFFFFFF, rotate=0)
+humidityLabel = M5TextBox(30, 160, "Humidity (%) :", lcd.FONT_Default, 0xFFFFFF, rotate=0)
+soundLabel = M5TextBox(30, 190, "Sound (db) :", lcd.FONT_Default, 0xFFFFFF, rotate=0)
+
+tempData = M5TextBox(210, 100, "Text", lcd.FONT_Default, 0xffffff, rotate=0)
+pressureData = M5TextBox(210, 130, "Text", lcd.FONT_Default, 0xFFFFFF, rotate=0)
+humidityData = M5TextBox(210, 160, "Text", lcd.FONT_Default, 0xFFFFFF, rotate=0)
 
 
-while True:
+show_stats = True
+show_task = False
+
+#sample input
+json_input = '''
+{
+  "steps": [
+    "1. Safety First: Power down the affected rack (C3) and confirm power isolation.",
+    "2. PPE Check: Don appropriate PPE including safety glasses and antistatic wrist strap.",
+    "3. Identify Faulty Fan: Locate and inspect the faulty cooling fan in Rack C3.",
+    "4. Remove Faulty Fan: Disconnect power and remove mounting hardware.",
+    "5. Install Replacement Fan: Secure new fan and reconnect power.",
+    "6. Verify Operation: Power on and confirm airflow and temperature.",
+    "7. Dispose of Faulty Fan: Follow e-waste procedures."
+  ]
+}
+'''
+
+data = json.loads(json_input)
+steps = data["steps"]
+step_index = 0
+
+while show_stats:
   tempC = env3_0.temperature
   tempF = tempC * 9 / 5 + 32
-  label3.setText(str(tempF))
-  label4.setText(str(env3_0.pressure))
-  label5.setText(str(env3_0.humidity))
+  tempData.setText(str(tempF))
+  pressureData.setText(str(env3_0.pressure))
+  humidityData.setText(str(env3_0.humidity))
   
-  if (tempF > 85):
-    label7.setText("Temp too high!")
-    label7.setColor(0x8B0000)
+  if (tempF > 80):
+    statusUpdate.setText("Temp too high!")
+    rgb.setColorAll(0xff0000)
+    statusUpdate.setColor(0x8B0000)
+    title0.setBgColor(0xff0000)
   else:
-    label7.setText("Normal stats")
-    label7.setColor(0xffffff)
+    statusUpdate.setText("Normal stats")
+    statusUpdate.setColor(0xffffff)
+    rgb.setColorAll(0x00FF00)
+    title0.setBgColor(0x00FF00)
     
-  
   wait(0.1)
   wait_ms(2)
+    
+while show_task:
+  tempLabel.setText("")
+  pressureLabel.setText("")
+  humidityLabel.setText("")
+  soundLabel.setText("")
+  
+  
+ 
+  
+
+
+
+
   
   
